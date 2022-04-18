@@ -54,6 +54,7 @@ export default function JokesRoute() {
             <ul>
               {data.jokeListItems.map((joke) => (
                 <li key={joke.id}>
+                  {/* Link to에 joke.id로 가면 @jokeId에서 params값으로 joke.id를 받을 수 있음 */}
                   <Link to={joke.id}>{joke.name}</Link>
                 </li>
               ))}
