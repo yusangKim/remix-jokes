@@ -1,13 +1,35 @@
-import type { LinksFunction } from "@remix-run/node";
-import { Outlet, Link } from "@remix-run/react";
+import type {
+  LinksFunction,
+  LoaderFunction,
+} from "@remix-run/node";
+import { json } from "@remix-run/node";
+import {
+  Link,
+  Outlet,
+  useLoaderData,
+} from "@remix-run/react";
 
+import { db } from "~/utils/db.server";
 import stylesUrl from "~/styles/jokes.css";
 
 export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: stylesUrl }];
 };
 
+type LoaderData = {
+  jokeListItems: Array<{ id: string; name: string }>;
+};
+
+export const loader: LoaderFunction = async () => { //1. loader로 데이터를 받을 수 있고
+  const data: LoaderData = {
+    jokeListItems: await db.joke.findMany(),
+  };
+  return json(data);
+};
+
 export default function JokesRoute() {
+  const data = useLoaderData<LoaderData>(); //2. useLoaderData Hook로 데이터를 사용할 수 있다
+
   return (
     <div className="jokes-layout">
       <header className="jokes-header">
@@ -30,17 +52,18 @@ export default function JokesRoute() {
             <Link to=".">Get a random joke</Link>
             <p>Here are a few more jokes to check out:</p>
             <ul>
-              <li>
-                <Link to="some-joke-id">Hippo</Link>
-              </li>
+              {data.jokeListItems.map((joke) => (
+                <li key={joke.id}>
+                  <Link to={joke.id}>{joke.name}</Link>
+                </li>
+              ))}
             </ul>
             <Link to="new" className="button">
               Add your own
             </Link>
           </div>
           <div className="jokes-outlet">
-          {/* 여기서 중첩 라우팅 되어서 한 페이지에서 다른 라우팅이 같이 보여짐*/}
-            <Outlet /> 
+            <Outlet />
           </div>
         </div>
       </main>
